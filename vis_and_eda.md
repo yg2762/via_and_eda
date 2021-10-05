@@ -134,3 +134,69 @@ weather_df %>%
     ## Warning: Removed 15 rows containing missing values (geom_point).
 
 ![](vis_and_eda_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+more plots
+
+``` r
+weather_df %>% 
+  ggplot (aes(x= date, y= tmax, size = prcp)) + 
+  geom_point(alpha =.3)+
+  facet_grid(.~ name)+
+  geom_smooth(se= FALSE) #se:standard error
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 3 rows containing missing values (geom_point).
+
+![](vis_and_eda_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+## Use data manipulation as part of this
+
+``` r
+weather_df %>% 
+  filter (name =="CentralPark_NY") %>% 
+  mutate(
+    tmax = tmax * (9/5) + 32,
+    tmin = tmin *(9/5) + 32
+  ) %>% 
+  ggplot(aes (x= tmin, y= tmax)) + geom_point()
+```
+
+![](vis_and_eda_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+## Stacking geoms
+
+Which geoms do you want?
+
+``` r
+weather_df %>% 
+  ggplot(aes( x= date, y= tmax, color=name)) +
+  geom_smooth() #only showing the smooth curve
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_smooth).
+
+![](vis_and_eda_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+weather_df %>% 
+  ggplot( aes(x= date, y= tmax)) +geom_hex()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_binhex).
+
+![](vis_and_eda_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+``` r
+weather_df %>% 
+  ggplot( aes(x= date, y= tmax)) +geom_bin_2d()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_bin2d).
+
+![](vis_and_eda_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
