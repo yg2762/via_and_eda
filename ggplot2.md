@@ -97,7 +97,7 @@ weather_df %>%
     y= "Maximum daily temp (C)",
     caption = "Data from the rnoaa package with three stations"
   ) +
-    scale_color_hue( name ="location", h = c(100, 300) ) + scale_color_viridis_d()
+    scale_color_hue( name ="location", h = c(100, 200) ) + scale_color_viridis_d()
 ```
 
     ## Scale for 'colour' is already present. Adding another scale for 'colour',
@@ -229,3 +229,112 @@ ggplot(data = waikiki, aes(x = date, y = tmax, color = name)) +
     ## Warning: Removed 3 rows containing missing values (geom_point).
 
 ![](ggplot2_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+
+## Patchwork
+
+``` r
+tmax_tmin_p = 
+  weather_df %>% 
+  ggplot(aes(x = tmax, y = tmin, color = name)) + 
+  geom_point(alpha = .5) +
+  theme(legend.position = "none")
+
+prcp_dens_p = 
+  weather_df %>% 
+  filter(prcp > 0) %>% 
+  ggplot(aes(x = prcp, fill = name)) + 
+  geom_density(alpha = .5) + 
+  theme(legend.position = "none")
+
+tmax_date_p = 
+  weather_df %>% 
+  ggplot(aes(x = date, y = tmax, color = name)) + 
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE) + 
+  theme(legend.position = "bottom")
+
+(tmax_tmin_p + prcp_dens_p) / tmax_date_p
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 3 rows containing missing values (geom_point).
+
+![](ggplot2_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+## Data manipulation
+
+``` r
+weather_df %>% 
+  mutate (
+    name = fct_reorder (name, tmax)
+  ) %>% 
+  ggplot(aes (x=name , y =tmax)) + geom_boxplot()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
+
+![](ggplot2_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+What about tmax and tmin…
+
+``` r
+weather_df %>% 
+  pivot_longer (
+    tmax:tmin,
+    names_to = "obs",
+    values_to = "temperature"
+  ) %>% 
+  ggplot(aes(x=temperature, fill = obs)) +
+  geom_density (alpha =0.3) +
+  facet_grid(.~ name)
+```
+
+    ## Warning: Removed 18 rows containing non-finite values (stat_density).
+
+![](ggplot2_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+``` r
+pulse_df =
+  haven :: read_sas("/Users/gaoyang/P8105/data_wrangling_1/datasets/public_pulse_data.sas7bdat") %>% 
+  janitor :: clean_names() %>% 
+  pivot_longer(
+    bdi_score_bl :bdi_score_12m,
+    names_to = "visit",
+    names_prefix ="bdi_score_",
+    values_to = "bdi"
+  ) %>% 
+  mutate (visit= recode(visit, "bl" = "00m"),
+          visit = factor(visit, levels = str_c(c("00", "01", "06", "12"), "m"))) %>% 
+   arrange(id, visit)
+ 
+ggplot(pulse_df, aes(x = visit, y = bdi)) + 
+  geom_boxplot()
+```
+
+    ## Warning: Removed 879 rows containing non-finite values (stat_boxplot).
+
+![](ggplot2_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+pulse_df 
+```
+
+    ## # A tibble: 4,348 × 5
+    ##       id   age sex   visit   bdi
+    ##    <dbl> <dbl> <chr> <fct> <dbl>
+    ##  1 10003  48.0 male  00m       7
+    ##  2 10003  48.0 male  01m       1
+    ##  3 10003  48.0 male  06m       2
+    ##  4 10003  48.0 male  12m       0
+    ##  5 10015  72.5 male  00m       6
+    ##  6 10015  72.5 male  01m      NA
+    ##  7 10015  72.5 male  06m      NA
+    ##  8 10015  72.5 male  12m      NA
+    ##  9 10022  58.5 male  00m      14
+    ## 10 10022  58.5 male  01m       3
+    ## # … with 4,338 more rows
