@@ -7,6 +7,111 @@ output: github_document
 
 ```{r}
 library (tidyverse)
+library (viridis)
 library (patchwork)
 ```
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+
+weather_df
+```
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  labs(
+    title = "Temperature at three stations",
+    x= "Minimum daily temp (C)",
+    y= "Maximum daily temp (C)",
+    caption = "Data from the rnoaa package with three stations"
+  ) +
+    scale_color_hue( name ="location", h = c(100, 300) ) + scale_color_viridis_d()
+                    
+
+
+weather_df
+```
+
+## Scales
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  labs(
+    title = "Temperature at three stations",
+    x= "Minimum daily temp (C)",
+    y= "Maximum daily temp (C)",
+    caption = "Data from the rnoaa package with three stations"
+  ) +
+    scale_x_continuous(
+    breaks = c(-15, 0, 15), 
+    labels = c("-15º C", "0", "15") ) +
+    
+    scale_y_continuous(
+      trans = "sqrt", 
+    position = "right"
+    )
+    
+    
+
+weather_df
+```
+
+
+## Themes
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  labs(
+    title = "Temperature at three stations",
+    x= "Minimum daily temp (C)",
+    y= "Maximum daily temp (C)",
+    caption = "Data from the rnoaa package with three stations") +
+  
+    scale_color_hue( name ="location", h = c(100, 300)) + 
+    scale_color_viridis_d() +
+    theme_bw() +
+    theme(legend.position = "bottom") 
+```
+
+## `data` in geoms
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point() 
+
+
+central_park = 
+  weather_df %>% 
+  filter(name == "CentralPark_NY")
+
+waikiki = 
+  weather_df %>% 
+  filter(name == "Waikiki_HA")
+
+ggplot(data = waikiki, aes(x = date, y = tmax, color = name)) + 
+  geom_point() + 
+  geom_line(data = central_park)
+
+```
+
+
+
 
