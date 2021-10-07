@@ -1,0 +1,12 @@
+---
+title: "ggplot2"
+author: "Yang Gao"
+date: "10/7/2021"
+output: github_document
+---
+
+```{r}
+library (tidyverse)
+library (patchwork)
+```
+
