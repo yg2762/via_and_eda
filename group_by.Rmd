@@ -28,6 +28,122 @@ weather_df =
   select(name, id, everything())
 ```
 
+## Group_by
+```{r}
+weather_df %>% 
+  group_by(name, month)
+# Groups:   name, month [36]
+```
+
+
+## count some things
+```{r}
+weather_df %>%
+  group_by(month) %>% 
+  summarize(n_obs =n())
+```
+quick way
+```{r}
+weather_df%>% 
+  count(name)
+```
+
+
+It's nice that summarize produces a data frame;
+`table` does not
+```{r}
+weather_df %>% 
+  pull(name) %>% 
+  table()
+```
+
+```{r}
+weather_df %>% 
+  janitor :: tabyl (month, name)
+```
+
+## more general summaries
+
+let's count, take means, look at SDs
+```{r}
+weather_df %>% 
+  group_by(name, month) %>% 
+  summarize(
+    n_obs = n(),
+    mean_tmax= mean(tmax, na.rm = TRUE),
+    median_tmax = median(tmax, na.rm = TRUE),
+    sd_tmax = sd(tmax, na.rm = TRUE)
+  ) %>% 
+  ggplot (aes(x= month, y= mean_tmax, color =name)) + geom_point() +geom_line()
+```
+
+```{r}
+weather_df %>% 
+  group_by (name) %>% 
+  summarize(
+    n_obs = n(),
+    mean_tmax = mean (tmax, na.rm= TRUE)
+  ) %>% 
+  knitr :: kable(digits =2)
+```
+
+## Grouped `mutate`
+```{r}
+weather_df %>% 
+  mutate(
+    mean_tmax =mean(tmax, na.rm= TRUE),
+    centered_tmax = tmax - mean_tmax
+    #group-vise mean
+  ) %>% 
+  ggplot(aes(x = date, y = centered_tmax, color = name)) + 
+    geom_point() 
+```
+
+
+```{r}
+weather_df %>% 
+  group_by (name) %>% 
+  mutate(
+    tmax_rank = min_rank(desc (tmax))
+  ) %>% 
+  filter (tmax_rank <2)
+```
+
+lagged variables
+
+```{r}
+weather_df %>% 
+  group_by(name) %>% 
+  mutate(
+    lagged_tmax = lag(tmax, n = 1),
+    tmax_diff = tmax - lagged_tmax
+  ) %>% 
+  summarize (diff_sd = sd (tmax_diff , na.rm = TRUE))
+```
+
+
+
+## Limitations
+What if my `summary`is a linear model.......
+```{r}
+weather_df %>% 
+  group_by (name) %>% 
+  summarize (cor_min_tmax = cor(tmin, tmax, use = "complete"))
+
+```
+weather_df %>% 
+  filter (name == "CenteralPark_NY") %>% 
+  lm(tmax - tmin , data = .)
+
+weather_df %>% 
+  group_by (name) %>% 
+  summarize (lm =lm(tmax-tmin))
+
+
+
+
+
+
 
 
 
